@@ -11,19 +11,19 @@ class SideMenuItem extends StatefulWidget {
   /// #### Side Menu Item
   ///
   /// This is a widget as [SideMenu] items with text and icon
-  const SideMenuItem({
-    Key? key,
-    this.onTap,
-    this.title,
-    this.icon,
-    this.iconWidget,
-    required this.priority,
-    this.badgeContent,
-    this.badgeColor,
-    this.tooltipContent,
-    this.trailing,
-    this.builder,
-  })  : assert(title != null || icon != null,
+  const SideMenuItem(
+      {Key? key,
+      this.onTap,
+      this.title,
+      this.icon,
+      this.iconWidget,
+      required this.priority,
+      this.badgeContent,
+      this.badgeColor,
+      this.tooltipContent,
+      this.trailing,
+      this.builder})
+      : assert(title != null || icon != null,
             'Title and icon should not be empty at the same time'),
         super(key: key);
 
@@ -90,7 +90,8 @@ class _SideMenuItemState extends State<SideMenuItem> {
   @override
   void initState() {
     super.initState();
-    _nonNullableWrap(WidgetsBinding.instance)!.addPostFrameCallback((timeStamp) {
+    _nonNullableWrap(WidgetsBinding.instance)!
+        .addPostFrameCallback((timeStamp) {
       // set initialPage
       setState(() {
         currentPage = Global.controller.currentPage;
@@ -127,13 +128,7 @@ class _SideMenuItemState extends State<SideMenuItem> {
   /// Set background color of [SideMenuItem]
   Color _setColor() {
     if (widget.priority == currentPage) {
-      if (isHovered) {
-        return Global.style.selectedHoverColor ??
-            Global.style.selectedColor ??
-            Theme.of(context).highlightColor;
-      } else {
-        return Global.style.selectedColor ?? Theme.of(context).highlightColor;
-      }
+      return Global.style.selectedColor ?? Theme.of(context).highlightColor;
     } else if (isHovered) {
       return Global.style.hoverColor ?? Colors.transparent;
     } else {
@@ -159,7 +154,8 @@ class _SideMenuItemState extends State<SideMenuItem> {
         badgeStyle: bdg.BadgeStyle(
           badgeColor: widget.badgeColor ?? Colors.red,
         ),
-        position: bdg.BadgePosition.topEnd(top: -13, end: -7),
+        position:
+            bdg.BadgePosition.custom(top: -13, end: -7, bottom: -8, start: -10),
         child: icon,
       );
     }
@@ -168,13 +164,25 @@ class _SideMenuItemState extends State<SideMenuItem> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onTap: () => widget.onTap?.call(widget.priority, Global.controller),
+      onHover: (value) {
+        setState(() {
+          isHovered = value;
+        });
+      },
+      highlightColor: Colors.transparent,
+      focusColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      splashColor: Colors.transparent,
       child: Padding(
         padding: Global.style.itemOuterPadding,
         child: Container(
-          height: Global.style.itemHeight,
+          height: widget.builder == null ? Global.style.itemHeight : null,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: _setColor(),
+            color: (widget.builder != null && widget.priority == currentPage)
+                ? null
+                : _setColor(),
             borderRadius: Global.style.itemBorderRadius,
           ),
           child: ValueListenableBuilder(
@@ -182,7 +190,8 @@ class _SideMenuItemState extends State<SideMenuItem> {
             builder: (context, value, child) {
               if (widget.builder == null) {
                 return Tooltip(
-                  message: (value == SideMenuDisplayMode.compact && Global.style.showTooltip)
+                  message: (value == SideMenuDisplayMode.compact &&
+                          Global.style.showTooltip)
                       ? widget.tooltipContent ?? widget.title ?? ""
                       : "",
                   child: Padding(
@@ -200,20 +209,21 @@ class _SideMenuItemState extends State<SideMenuItem> {
                         ),
                         if (value == SideMenuDisplayMode.open) ...[
                           Expanded(
-                            child: FittedBox(
-                              alignment: Alignment.centerLeft,
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                widget.title ?? '',
-                                style: widget.priority == currentPage.ceil()
-                                    ? const TextStyle(fontSize: 17, color: Colors.black)
-                                        .merge(Global.style.selectedTitleTextStyle)
-                                    : const TextStyle(fontSize: 17, color: Colors.black54)
-                                        .merge(Global.style.unselectedTitleTextStyle),
-                              ),
+                            child: Text(
+                              widget.title ?? '',
+                              style: widget.priority == currentPage.ceil()
+                                  ? const TextStyle(
+                                          fontSize: 17, color: Colors.black)
+                                      .merge(
+                                          Global.style.selectedTitleTextStyle)
+                                  : const TextStyle(
+                                          fontSize: 17, color: Colors.black54)
+                                      .merge(Global
+                                          .style.unselectedTitleTextStyle),
                             ),
                           ),
-                          if (widget.trailing != null && Global.showTrailing) ...[
+                          if (widget.trailing != null &&
+                              Global.showTrailing) ...[
                             widget.trailing!,
                             SizedBox(
                               width: Global.style.itemInnerSpacing,
@@ -231,16 +241,6 @@ class _SideMenuItemState extends State<SideMenuItem> {
           ),
         ),
       ),
-      onTap: () => widget.onTap?.call(widget.priority, Global.controller),
-      onHover: (value) {
-        setState(() {
-          isHovered = value;
-        });
-      },
-      highlightColor: Colors.transparent,
-      focusColor: Colors.transparent,
-      hoverColor: Colors.transparent,
-      splashColor: Colors.transparent,
     );
   }
 }
